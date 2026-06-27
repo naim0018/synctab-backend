@@ -55,6 +55,16 @@ export class AppService {
     return user;
   }
 
+  async updateUserSettings(
+    id: string,
+    settings: { accentColor?: string; blurIntensity?: string; clockFormat24h?: boolean }
+  ) {
+    return this.prisma.user.update({
+      where: { id },
+      data: settings,
+    });
+  }
+
   // ==================== NOTE OPERATIONS ====================
 
   async getAllNotes(userId?: string) {
@@ -211,6 +221,31 @@ export class AppService {
     });
     this.gateway.broadcastTaskUpdate('delete', task);
     return task;
+  }
+
+  // ==================== CUSTOM WALLPAPER OPERATIONS ====================
+
+  async getCustomWallpapers(userId: string) {
+    return this.prisma.customWallpaper.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createCustomWallpaper(name: string, url: string, userId: string) {
+    return this.prisma.customWallpaper.create({
+      data: {
+        name,
+        url,
+        userId,
+      },
+    });
+  }
+
+  async deleteCustomWallpaper(id: string) {
+    return this.prisma.customWallpaper.delete({
+      where: { id },
+    });
   }
 
   // ==================== BOOKMARK OPERATIONS ====================

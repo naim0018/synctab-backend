@@ -8,9 +8,13 @@ import {
   Param,
   Query,
   Res,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { AppService } from './app.service';
+import { uploadToCloudinary } from './cloudinary.helper';
 
 @Controller()
 export class AppController {
@@ -31,6 +35,14 @@ export class AppController {
   @Patch('users/:id/status')
   updateUserStatus(@Param('id') id: string, @Body() body: { status: string }) {
     return this.appService.updateUserStatus(id, body.status);
+  }
+
+  @Patch('users/:id/settings')
+  updateUserSettings(
+    @Param('id') id: string,
+    @Body() body: { accentColor?: string; blurIntensity?: string; clockFormat24h?: boolean }
+  ) {
+    return this.appService.updateUserSettings(id, body);
   }
 
   // ==================== NOTES ====================
@@ -123,6 +135,46 @@ export class AppController {
   @Delete('tasks/:id')
   deleteTask(@Param('id') id: string) {
     return this.appService.deleteTask(id);
+  }
+
+  // ==================== CUSTOM WALLPAPERS ====================
+
+  @Get('wallpapers')
+  getCustomWallpapers(@Query('userId') userId: string) {
+    return this.appService.getCustomWallpapers(userId);
+  }
+
+  @Post('wallpapers/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadWallpaper(
+    @UploadedFile() file: any,
+    @Body() body: { name: string; userId: string },
+  ) {
+    if (!file) {
+      throw new Error('No file uploaded');
+    }
+    
+    let imageUrl = '';
+    try {
+      if (
+        process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET
+      ) {
+        imageUrl = await uploadToCloudinary(file.buffer, file.originalname);
+      } else {
+        imageUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+      }
+    } catch (err) {
+      imageUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+    }
+
+    return this.appService.createCustomWallpaper(body.name, imageUrl, body.userId);
+  }
+
+  @Delete('wallpapers/:id')
+  deleteCustomWallpaper(@Param('id') id: string) {
+    return this.appService.deleteCustomWallpaper(id);
   }
 
   // ==================== BOOKMARKS ====================

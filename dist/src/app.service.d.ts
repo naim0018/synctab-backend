@@ -11,6 +11,9 @@ export declare class AppService {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }[]>;
     createUser(name: string, email?: string, avatar?: string): Promise<{
@@ -20,6 +23,9 @@ export declare class AppService {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>;
     updateUserStatus(id: string, status: string): Promise<{
@@ -29,6 +35,25 @@ export declare class AppService {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
+        createdAt: Date;
+    }>;
+    updateUserSettings(id: string, settings: {
+        accentColor?: string;
+        blurIntensity?: string;
+        clockFormat24h?: boolean;
+    }): Promise<{
+        id: string;
+        name: string;
+        email: string | null;
+        password: string | null;
+        avatar: string;
+        status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>;
     getAllNotes(userId?: string): Promise<({
@@ -43,8 +68,8 @@ export declare class AppService {
         title: string;
         content: string;
         isShared: boolean;
-        updatedAt: Date;
         userId: string;
+        updatedAt: Date;
     })[]>;
     createNote(title: string, content: string, isShared: boolean, userId: string): Promise<{
         user: {
@@ -58,8 +83,8 @@ export declare class AppService {
         title: string;
         content: string;
         isShared: boolean;
-        updatedAt: Date;
         userId: string;
+        updatedAt: Date;
     }>;
     updateNote(id: string, title: string, content: string, isShared: boolean): Promise<{
         user: {
@@ -73,8 +98,8 @@ export declare class AppService {
         title: string;
         content: string;
         isShared: boolean;
-        updatedAt: Date;
         userId: string;
+        updatedAt: Date;
     }>;
     deleteNote(id: string): Promise<{
         id: string;
@@ -82,8 +107,8 @@ export declare class AppService {
         title: string;
         content: string;
         isShared: boolean;
-        updatedAt: Date;
         userId: string;
+        updatedAt: Date;
     }>;
     getAllTasks(): Promise<({
         assignee: {
@@ -166,53 +191,74 @@ export declare class AppService {
         assigneeId: string | null;
         creatorId: string;
     }>;
-    getAllBookmarks(userId?: string): Promise<{
+    getCustomWallpapers(userId: string): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        userId: string;
         url: string;
+    }[]>;
+    createCustomWallpaper(name: string, url: string, userId: string): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        userId: string;
+        url: string;
+    }>;
+    deleteCustomWallpaper(id: string): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        userId: string;
+        url: string;
+    }>;
+    getAllBookmarks(userId?: string): Promise<{
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
+        url: string;
         category: string;
         clicks: number;
     }[]>;
     createBookmark(title: string, url: string, category: string, isShared: boolean, userId: string): Promise<{
-        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
+        url: string;
         category: string;
         clicks: number;
     }>;
     updateBookmark(id: string, updates: Record<string, unknown>): Promise<{
-        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
+        url: string;
         category: string;
         clicks: number;
     }>;
     deleteBookmark(id: string): Promise<{
-        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
+        url: string;
         category: string;
         clicks: number;
     }>;
     incrementBookmarkClick(id: string): Promise<{
-        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
+        url: string;
         category: string;
         clicks: number;
     }>;
@@ -279,6 +325,9 @@ export declare class AppService {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>>;
     register(name: string, email: string, password: string, avatar?: string): Promise<Partial<{
@@ -288,6 +337,9 @@ export declare class AppService {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>>;
     verifyGoogleToken(credential: string): Promise<{
@@ -307,6 +359,9 @@ export declare class AppService {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>>;
     handleGoogleCallback(code: string): Promise<Partial<{
@@ -316,6 +371,9 @@ export declare class AppService {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>>;
 }

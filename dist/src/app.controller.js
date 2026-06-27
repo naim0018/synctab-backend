@@ -14,7 +14,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppController = void 0;
 const common_1 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
 const app_service_1 = require("./app.service");
+const cloudinary_helper_1 = require("./cloudinary.helper");
 let AppController = class AppController {
     appService;
     constructor(appService) {
@@ -28,6 +30,9 @@ let AppController = class AppController {
     }
     updateUserStatus(id, body) {
         return this.appService.updateUserStatus(id, body.status);
+    }
+    updateUserSettings(id, body) {
+        return this.appService.updateUserSettings(id, body);
     }
     getAllNotes(userId) {
         return this.appService.getAllNotes(userId);
@@ -52,6 +57,32 @@ let AppController = class AppController {
     }
     deleteTask(id) {
         return this.appService.deleteTask(id);
+    }
+    getCustomWallpapers(userId) {
+        return this.appService.getCustomWallpapers(userId);
+    }
+    async uploadWallpaper(file, body) {
+        if (!file) {
+            throw new Error('No file uploaded');
+        }
+        let imageUrl = '';
+        try {
+            if (process.env.CLOUDINARY_CLOUD_NAME &&
+                process.env.CLOUDINARY_API_KEY &&
+                process.env.CLOUDINARY_API_SECRET) {
+                imageUrl = await (0, cloudinary_helper_1.uploadToCloudinary)(file.buffer, file.originalname);
+            }
+            else {
+                imageUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+            }
+        }
+        catch (err) {
+            imageUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+        }
+        return this.appService.createCustomWallpaper(body.name, imageUrl, body.userId);
+    }
+    deleteCustomWallpaper(id) {
+        return this.appService.deleteCustomWallpaper(id);
     }
     getAllBookmarks(userId) {
         return this.appService.getAllBookmarks(userId);
@@ -200,6 +231,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "updateUserStatus", null);
 __decorate([
+    (0, common_1.Patch)('users/:id/settings'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "updateUserSettings", null);
+__decorate([
     (0, common_1.Get)('notes'),
     __param(0, (0, common_1.Query)('userId')),
     __metadata("design:type", Function),
@@ -256,6 +295,29 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "deleteTask", null);
+__decorate([
+    (0, common_1.Get)('wallpapers'),
+    __param(0, (0, common_1.Query)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getCustomWallpapers", null);
+__decorate([
+    (0, common_1.Post)('wallpapers/upload'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    __param(0, (0, common_1.UploadedFile)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "uploadWallpaper", null);
+__decorate([
+    (0, common_1.Delete)('wallpapers/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "deleteCustomWallpaper", null);
 __decorate([
     (0, common_1.Get)('bookmarks'),
     __param(0, (0, common_1.Query)('userId')),

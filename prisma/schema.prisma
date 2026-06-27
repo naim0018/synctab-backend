@@ -16,6 +16,9 @@ model User {
   password  String?
   avatar    String   // URL or identifier for display avatar
   status    String   @default("Active") // Active, In Meeting, Away, etc.
+  accentColor    String   @default("#8b5cf6")
+  blurIntensity  String   @default("20px")
+  clockFormat24h Boolean  @default(false)
   createdAt DateTime @default(now())
   
   // Relations
@@ -25,6 +28,7 @@ model User {
   bookmarks     Bookmark[]
   reminders     Reminder[]
   messages      Message[]
+  customWallpapers CustomWallpaper[]
 }
 
 model Note {
@@ -81,6 +85,15 @@ model Reminder {
 model Message {
   id        String   @id @default(uuid())
   text      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model CustomWallpaper {
+  id        String   @id @default(uuid())
+  name      String
+  url       String
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())

@@ -10,6 +10,9 @@ export declare class AppController {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }[]>;
     createUser(body: {
@@ -23,6 +26,9 @@ export declare class AppController {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>;
     updateUserStatus(id: string, body: {
@@ -34,6 +40,25 @@ export declare class AppController {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
+        createdAt: Date;
+    }>;
+    updateUserSettings(id: string, body: {
+        accentColor?: string;
+        blurIntensity?: string;
+        clockFormat24h?: boolean;
+    }): Promise<{
+        id: string;
+        name: string;
+        email: string | null;
+        password: string | null;
+        avatar: string;
+        status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>;
     getAllNotes(userId?: string): Promise<({
@@ -188,6 +213,30 @@ export declare class AppController {
         assigneeId: string | null;
         creatorId: string;
     }>;
+    getCustomWallpapers(userId: string): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        userId: string;
+        url: string;
+    }[]>;
+    uploadWallpaper(file: any, body: {
+        name: string;
+        userId: string;
+    }): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        userId: string;
+        url: string;
+    }>;
+    deleteCustomWallpaper(id: string): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        userId: string;
+        url: string;
+    }>;
     getAllBookmarks(userId?: string): Promise<{
         id: string;
         createdAt: Date;
@@ -317,6 +366,9 @@ export declare class AppController {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>>;
     register(body: {
@@ -331,6 +383,9 @@ export declare class AppController {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>>;
     googleLogin(body: {
@@ -345,6 +400,9 @@ export declare class AppController {
         password: string | null;
         avatar: string;
         status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
         createdAt: Date;
     }>>;
     googleLoginRedirect(res: Response): void | Response<any, Record<string, any>>;
