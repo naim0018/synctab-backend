@@ -28,7 +28,8 @@ model User {
   bookmarks     Bookmark[]
   reminders     Reminder[]
   messages      Message[]
-  customWallpapers CustomWallpaper[]
+  customWallpapers    CustomWallpaper[]
+  linkedGoogleAccounts LinkedGoogleAccount[]
 }
 
 model Note {
@@ -97,4 +98,14 @@ model CustomWallpaper {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+}
+
+model LinkedGoogleAccount {
+  id          String   @id @default(uuid())
+  googleEmail String   @unique
+  displayName String?
+  avatarUrl   String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
 }

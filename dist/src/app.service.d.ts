@@ -364,7 +364,12 @@ export declare class AppService {
         clockFormat24h: boolean;
         createdAt: Date;
     }>>;
-    handleGoogleCallback(code: string): Promise<Partial<{
+    updateUserProfile(id: string, updates: {
+        name?: string;
+        email?: string;
+        password?: string;
+        avatar?: string;
+    }): Promise<Partial<{
         id: string;
         name: string;
         email: string | null;
@@ -376,4 +381,43 @@ export declare class AppService {
         clockFormat24h: boolean;
         createdAt: Date;
     }>>;
+    getLinkedGoogleAccounts(userId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        userId: string;
+        googleEmail: string;
+        displayName: string | null;
+        avatarUrl: string | null;
+    }[]>;
+    linkGoogleAccount(userId: string, googleEmail: string, displayName?: string, avatarUrl?: string): Promise<{
+        id: string;
+        createdAt: Date;
+        userId: string;
+        googleEmail: string;
+        displayName: string | null;
+        avatarUrl: string | null;
+    }>;
+    unlinkGoogleAccount(userId: string, googleEmail: string): Promise<{
+        id: string;
+        createdAt: Date;
+        userId: string;
+        googleEmail: string;
+        displayName: string | null;
+        avatarUrl: string | null;
+    }>;
+    handleGoogleCallback(code: string): Promise<{
+        user: Partial<{
+            id: string;
+            name: string;
+            email: string | null;
+            password: string | null;
+            avatar: string;
+            status: string;
+            accentColor: string;
+            blurIntensity: string;
+            clockFormat24h: boolean;
+            createdAt: Date;
+        }>;
+        googleEmail: string;
+    }>;
 }

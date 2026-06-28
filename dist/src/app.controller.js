@@ -34,6 +34,18 @@ let AppController = class AppController {
     updateUserSettings(id, body) {
         return this.appService.updateUserSettings(id, body);
     }
+    updateUserProfile(id, body) {
+        return this.appService.updateUserProfile(id, body);
+    }
+    getLinkedGoogleAccounts(id) {
+        return this.appService.getLinkedGoogleAccounts(id);
+    }
+    linkGoogleAccount(id, body) {
+        return this.appService.linkGoogleAccount(id, body.googleEmail, body.displayName, body.avatarUrl);
+    }
+    unlinkGoogleAccount(id, googleEmail) {
+        return this.appService.unlinkGoogleAccount(id, googleEmail);
+    }
     getAllNotes(userId) {
         return this.appService.getAllNotes(userId);
     }
@@ -165,7 +177,8 @@ let AppController = class AppController {
             if (!code) {
                 throw new Error('Authorization code not provided by Google.');
             }
-            const user = (await this.appService.handleGoogleCallback(code));
+            const result = (await this.appService.handleGoogleCallback(code));
+            const { user, googleEmail } = result;
             res.setHeader('Content-Type', 'text/html');
             return res.send(`
         <html>
@@ -174,7 +187,8 @@ let AppController = class AppController {
               if (window.opener) {
                 window.opener.postMessage({
                   type: 'GOOGLE_AUTH_SUCCESS',
-                  user: ${JSON.stringify(user)}
+                  user: ${JSON.stringify(user)},
+                  googleEmail: ${JSON.stringify(googleEmail)}
                 }, '*');
                 window.close();
               } else {
@@ -238,6 +252,37 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "updateUserSettings", null);
+__decorate([
+    (0, common_1.Patch)('users/:id/profile'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "updateUserProfile", null);
+__decorate([
+    (0, common_1.Get)('users/:id/google-accounts'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getLinkedGoogleAccounts", null);
+__decorate([
+    (0, common_1.Post)('users/:id/google-accounts'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "linkGoogleAccount", null);
+__decorate([
+    (0, common_1.Delete)('users/:id/google-accounts/:googleEmail'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('googleEmail')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "unlinkGoogleAccount", null);
 __decorate([
     (0, common_1.Get)('notes'),
     __param(0, (0, common_1.Query)('userId')),

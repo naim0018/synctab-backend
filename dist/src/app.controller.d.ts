@@ -61,6 +61,51 @@ export declare class AppController {
         clockFormat24h: boolean;
         createdAt: Date;
     }>;
+    updateUserProfile(id: string, body: {
+        name?: string;
+        email?: string;
+        password?: string;
+        avatar?: string;
+    }): Promise<Partial<{
+        id: string;
+        name: string;
+        email: string | null;
+        password: string | null;
+        avatar: string;
+        status: string;
+        accentColor: string;
+        blurIntensity: string;
+        clockFormat24h: boolean;
+        createdAt: Date;
+    }>>;
+    getLinkedGoogleAccounts(id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        googleEmail: string;
+        displayName: string | null;
+        avatarUrl: string | null;
+        userId: string;
+    }[]>;
+    linkGoogleAccount(id: string, body: {
+        googleEmail: string;
+        displayName?: string;
+        avatarUrl?: string;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        googleEmail: string;
+        displayName: string | null;
+        avatarUrl: string | null;
+        userId: string;
+    }>;
+    unlinkGoogleAccount(id: string, googleEmail: string): Promise<{
+        id: string;
+        createdAt: Date;
+        googleEmail: string;
+        displayName: string | null;
+        avatarUrl: string | null;
+        userId: string;
+    }>;
     getAllNotes(userId?: string): Promise<({
         user: {
             id: string;
@@ -70,10 +115,10 @@ export declare class AppController {
     } & {
         id: string;
         createdAt: Date;
+        userId: string;
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
     })[]>;
     createNote(body: {
@@ -90,10 +135,10 @@ export declare class AppController {
     } & {
         id: string;
         createdAt: Date;
+        userId: string;
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
     }>;
     updateNote(id: string, body: {
@@ -109,19 +154,19 @@ export declare class AppController {
     } & {
         id: string;
         createdAt: Date;
+        userId: string;
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
     }>;
     deleteNote(id: string): Promise<{
         id: string;
         createdAt: Date;
+        userId: string;
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
     }>;
     getAllTasks(): Promise<({
@@ -240,9 +285,9 @@ export declare class AppController {
     getAllBookmarks(userId?: string): Promise<{
         id: string;
         createdAt: Date;
+        userId: string;
         title: string;
         isShared: boolean;
-        userId: string;
         url: string;
         category: string;
         clicks: number;
@@ -256,9 +301,9 @@ export declare class AppController {
     }): Promise<{
         id: string;
         createdAt: Date;
+        userId: string;
         title: string;
         isShared: boolean;
-        userId: string;
         url: string;
         category: string;
         clicks: number;
@@ -266,9 +311,9 @@ export declare class AppController {
     updateBookmark(id: string, updates: Record<string, unknown>): Promise<{
         id: string;
         createdAt: Date;
+        userId: string;
         title: string;
         isShared: boolean;
-        userId: string;
         url: string;
         category: string;
         clicks: number;
@@ -276,9 +321,9 @@ export declare class AppController {
     deleteBookmark(id: string): Promise<{
         id: string;
         createdAt: Date;
+        userId: string;
         title: string;
         isShared: boolean;
-        userId: string;
         url: string;
         category: string;
         clicks: number;
@@ -286,9 +331,9 @@ export declare class AppController {
     incrementBookmarkClick(id: string): Promise<{
         id: string;
         createdAt: Date;
+        userId: string;
         title: string;
         isShared: boolean;
-        userId: string;
         url: string;
         category: string;
         clicks: number;

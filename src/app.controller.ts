@@ -45,6 +45,32 @@ export class AppController {
     return this.appService.updateUserSettings(id, body);
   }
 
+  @Patch('users/:id/profile')
+  updateUserProfile(
+    @Param('id') id: string,
+    @Body() body: { name?: string; email?: string; password?: string; avatar?: string },
+  ) {
+    return this.appService.updateUserProfile(id, body);
+  }
+
+  @Get('users/:id/google-accounts')
+  getLinkedGoogleAccounts(@Param('id') id: string) {
+    return this.appService.getLinkedGoogleAccounts(id);
+  }
+
+  @Post('users/:id/google-accounts')
+  linkGoogleAccount(
+    @Param('id') id: string,
+    @Body() body: { googleEmail: string; displayName?: string; avatarUrl?: string },
+  ) {
+    return this.appService.linkGoogleAccount(id, body.googleEmail, body.displayName, body.avatarUrl);
+  }
+
+  @Delete('users/:id/google-accounts/:googleEmail')
+  unlinkGoogleAccount(@Param('id') id: string, @Param('googleEmail') googleEmail: string) {
+    return this.appService.unlinkGoogleAccount(id, googleEmail);
+  }
+
   // ==================== NOTES ====================
 
   @Get('notes')
@@ -341,10 +367,11 @@ export class AppController {
       if (!code) {
         throw new Error('Authorization code not provided by Google.');
       }
-      const user = (await this.appService.handleGoogleCallback(code)) as Record<
-        string,
-        unknown
-      >;
+      const result = (await this.appService.handleGoogleCallback(code)) as {
+        user: Record<string, unknown>;
+        googleEmail: string;
+      };
+      const { user, googleEmail } = result;
       res.setHeader('Content-Type', 'text/html');
       return res.send(`
         <html>
@@ -353,7 +380,8 @@ export class AppController {
               if (window.opener) {
                 window.opener.postMessage({
                   type: 'GOOGLE_AUTH_SUCCESS',
-                  user: ${JSON.stringify(user)}
+                  user: ${JSON.stringify(user)},
+                  googleEmail: ${JSON.stringify(googleEmail)}
                 }, '*');
                 window.close();
               } else {
@@ -386,3 +414,4 @@ export class AppController {
     }
   }
 }
+

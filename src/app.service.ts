@@ -489,6 +489,28 @@ export class AppService {
       throw new Error('Missing email or name for authentication.');
     }
 
+    // 1. Check if this Google email is a LINKED account
+    const linkedAccount = await this.prisma.linkedGoogleAccount.findUnique({
+      where: { googleEmail: email },
+      include: { user: true },
+    });
+
+    if (linkedAccount) {
+      await this.prisma.linkedGoogleAccount.update({
+        where: { googleEmail: email },
+        data: { displayName: name, avatarUrl: avatar },
+      });
+      const user = await this.prisma.user.update({
+        where: { id: linkedAccount.userId },
+        data: { avatar },
+      });
+      this.gateway.broadcastPresence(user.id, user.name, user.status);
+      const userWithoutPassword: Partial<typeof user> = { ...user };
+      delete userWithoutPassword.password;
+      return userWithoutPassword;
+    }
+
+    // 2. Primary email lookup
     let user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -501,12 +523,11 @@ export class AppService {
       });
     } else {
       user = await this.prisma.user.create({
-        data: {
-          name,
-          email,
-          avatar,
-          status: 'Active',
-        },
+        data: { name, email, avatar, status: 'Active' },
+      });
+      // Auto-link this Google email
+      await this.prisma.linkedGoogleAccount.create({
+        data: { googleEmail: email, displayName: name, avatarUrl: avatar, userId: user.id },
       });
     }
 
@@ -515,6 +536,115 @@ export class AppService {
     const userWithoutPassword: Partial<typeof user> = { ...user };
     delete userWithoutPassword.password;
     return userWithoutPassword;
+  }
+
+  async updateUserProfile(
+    id: string,
+    updates: { name?: string; email?: string; password?: string; avatar?: string },
+  ) {
+    const existing = await this.prisma.user.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('User not found');
+
+    const data: Record<string, string | undefined> = {};
+    if (updates.name !== undefined) data.name = updates.name;
+    if (updates.avatar !== undefined) data.avatar = updates.avatar;
+    if (updates.email !== undefined && updates.email !== existing.email) {
+      // Check email uniqueness
+      const emailUser = await this.prisma.user.findUnique({ where: { email: updates.email } });
+      if (emailUser && emailUser.id !== id) {
+        throw new Error('Email is already in use by another account.');
+      }
+      data.email = updates.email;
+    }
+    if (updates.password !== undefined && updates.password.trim()) {
+      data.password = hashPassword(updates.password);
+    }
+
+    const user = await this.prisma.user.update({ where: { id }, data });
+    const userWithoutPassword: Partial<typeof user> = { ...user };
+    delete userWithoutPassword.password;
+    return userWithoutPassword;
+  }
+
+  async getLinkedGoogleAccounts(userId: string) {
+    return this.prisma.linkedGoogleAccount.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async linkGoogleAccount(userId: string, googleEmail: string, displayName?: string, avatarUrl?: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    // Check if this google email is already linked somewhere
+    const existing = await this.prisma.linkedGoogleAccount.findUnique({
+      where: { googleEmail },
+      include: { user: true },
+    });
+
+    if (existing) {
+      if (existing.userId === userId) {
+        // Already linked to this user — just refresh name/avatar
+        return this.prisma.linkedGoogleAccount.update({
+          where: { googleEmail },
+          data: { displayName, avatarUrl },
+        });
+      }
+
+      // Linked to a DIFFERENT user.
+      // Check if that user was auto-created by the OAuth popup flow:
+      //   - Their primary email equals the googleEmail (i.e. they only exist because of the OAuth redirect)
+      //   - They have no password (never registered manually)
+      //   - They have no data (notes, bookmarks, tasks, reminders, etc.)
+      const otherUser = existing.user;
+      const isOAuthCreatedOrphan =
+        otherUser.email === googleEmail &&
+        !otherUser.password;
+
+      if (!isOAuthCreatedOrphan) {
+        throw new Error(
+          'This Google account is already linked to a different SyncTab user. If you own that account, sign into it first and unlink from there.',
+        );
+      }
+
+      // Safe to re-assign: move the link to the current user
+      const updated = await this.prisma.linkedGoogleAccount.update({
+        where: { googleEmail },
+        data: { userId, displayName, avatarUrl },
+      });
+
+      // Clean up the now-orphaned auto-created user (they have no meaningful data)
+      try {
+        // Only delete if they have no other linked Google accounts and no data
+        const remainingLinks = await this.prisma.linkedGoogleAccount.count({
+          where: { userId: otherUser.id },
+        });
+        if (remainingLinks === 0) {
+          await this.prisma.user.delete({ where: { id: otherUser.id } });
+        }
+      } catch (_cleanupErr) {
+        // Non-fatal: orphan cleanup failure should not block the link operation
+        console.warn('Could not clean up orphaned user:', otherUser.id);
+      }
+
+      return updated;
+    }
+
+    // No existing link — create it fresh
+    return this.prisma.linkedGoogleAccount.create({
+      data: { googleEmail, displayName, avatarUrl, userId },
+    });
+  }
+
+  async unlinkGoogleAccount(userId: string, googleEmail: string) {
+    const existing = await this.prisma.linkedGoogleAccount.findUnique({
+      where: { googleEmail },
+    });
+    if (!existing || existing.userId !== userId) {
+      throw new NotFoundException('Linked account not found for this user');
+    }
+    return this.prisma.linkedGoogleAccount.delete({ where: { googleEmail } });
   }
 
   async handleGoogleCallback(code: string) {
@@ -555,9 +685,31 @@ export class AppService {
       throw new Error('Missing email or name from Google profile.');
     }
 
-    let user = await this.prisma.user.findUnique({
-      where: { email },
+    // 1. Check if this Google email is a LINKED account first
+    const linkedAccount = await this.prisma.linkedGoogleAccount.findUnique({
+      where: { googleEmail: email },
+      include: { user: true },
     });
+
+    if (linkedAccount) {
+      // Update avatar on the linked account record
+      await this.prisma.linkedGoogleAccount.update({
+        where: { googleEmail: email },
+        data: { displayName: name, avatarUrl: avatar },
+      });
+      // Return the primary user, updating avatar to the current Google picture
+      const user = await this.prisma.user.update({
+        where: { id: linkedAccount.userId },
+        data: { avatar },
+      });
+      this.gateway.broadcastPresence(user.id, user.name, user.status);
+      const userWithoutPassword: Partial<typeof user> = { ...user };
+      delete userWithoutPassword.password;
+      return { user: userWithoutPassword, googleEmail: email };
+    }
+
+    // 2. Try to find by primary email
+    let user = await this.prisma.user.findUnique({ where: { email } });
 
     if (user) {
       user = await this.prisma.user.update({
@@ -566,12 +718,11 @@ export class AppService {
       });
     } else {
       user = await this.prisma.user.create({
-        data: {
-          name,
-          email,
-          avatar,
-          status: 'Active',
-        },
+        data: { name, email, avatar, status: 'Active' },
+      });
+      // Auto-link the primary Google email
+      await this.prisma.linkedGoogleAccount.create({
+        data: { googleEmail: email, displayName: name, avatarUrl: avatar, userId: user.id },
       });
     }
 
@@ -579,6 +730,7 @@ export class AppService {
 
     const userWithoutPassword: Partial<typeof user> = { ...user };
     delete userWithoutPassword.password;
-    return userWithoutPassword;
+    return { user: userWithoutPassword, googleEmail: email };
   }
 }
+
