@@ -251,9 +251,49 @@ export class AppService {
   // ==================== BOOKMARK OPERATIONS ====================
 
   async getAllBookmarks(userId?: string) {
+    if (!userId) {
+      return this.prisma.bookmark.findMany({
+        where: { isShared: true },
+        orderBy: [{ clicks: 'desc' }, { createdAt: 'desc' }],
+      });
+    }
+
+    // 1. Find accounts linked by this user (User -> Linked Accounts)
+    const linksFromUser = await this.prisma.linkedGoogleAccount.findMany({
+      where: { userId },
+    });
+    const emailsFromUser = linksFromUser.map(l => l.googleEmail).filter(Boolean);
+
+    // Find user IDs for those emails
+    const usersFromUserLinks = await this.prisma.user.findMany({
+      where: { email: { in: emailsFromUser } },
+      select: { id: true },
+    });
+
+    // 2. Find users who have linked this user's email (Other Users -> This User)
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    const linksToUser = currentUser?.email
+      ? await this.prisma.linkedGoogleAccount.findMany({
+          where: { googleEmail: currentUser.email },
+          select: { userId: true },
+        })
+      : [];
+
+    const allUserIds = Array.from(new Set([
+      userId,
+      ...usersFromUserLinks.map(u => u.id),
+      ...linksToUser.map(l => l.userId),
+    ]));
+
     return this.prisma.bookmark.findMany({
       where: {
-        OR: [{ isShared: true }, userId ? { userId } : { id: 'none' }],
+        OR: [
+          { isShared: true },
+          { userId: { in: allUserIds } }
+        ],
       },
       orderBy: [{ clicks: 'desc' }, { createdAt: 'desc' }],
     });
@@ -500,9 +540,17 @@ export class AppService {
         where: { googleEmail: email },
         data: { displayName: name, avatarUrl: avatar },
       });
+
+      // Only update primary user profile if logging in with the primary email itself
+      const updateData: Prisma.UserUpdateInput = {};
+      if (linkedAccount.user.email === email) {
+        updateData.name = name;
+        updateData.avatar = avatar;
+      }
+
       const user = await this.prisma.user.update({
         where: { id: linkedAccount.userId },
-        data: { avatar },
+        data: updateData,
       });
       this.gateway.broadcastPresence(user.id, user.name, user.status);
       const userWithoutPassword: Partial<typeof user> = { ...user };
@@ -697,10 +745,18 @@ export class AppService {
         where: { googleEmail: email },
         data: { displayName: name, avatarUrl: avatar },
       });
-      // Return the primary user, updating avatar to the current Google picture
+
+      // Only update primary user profile if logging in with the primary email itself
+      const updateData: Prisma.UserUpdateInput = {};
+      if (linkedAccount.user.email === email) {
+        updateData.name = name;
+        updateData.avatar = avatar;
+      }
+
+      // Return the primary user
       const user = await this.prisma.user.update({
         where: { id: linkedAccount.userId },
-        data: { avatar },
+        data: updateData,
       });
       this.gateway.broadcastPresence(user.id, user.name, user.status);
       const userWithoutPassword: Partial<typeof user> = { ...user };
