@@ -1,7 +1,10 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
 
-export async function uploadToCloudinary(fileBuffer: Buffer, fileName: string): Promise<string> {
+export async function uploadToCloudinary(
+  fileBuffer: Buffer,
+  fileName: string,
+): Promise<string> {
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'synctab',
     api_key: process.env.CLOUDINARY_API_KEY || 'mock_key',
@@ -16,9 +19,12 @@ export async function uploadToCloudinary(fileBuffer: Buffer, fileName: string): 
       },
       (error, result) => {
         if (error) return reject(error);
-        if (!result) return reject(new Error('Cloudinary upload returned undefined result'));
+        if (!result)
+          return reject(
+            new Error('Cloudinary upload returned undefined result'),
+          );
         resolve(result.secure_url);
-      }
+      },
     );
 
     const stream = new Readable();

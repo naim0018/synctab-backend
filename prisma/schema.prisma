@@ -30,6 +30,7 @@ model User {
   messages      Message[]
   customWallpapers    CustomWallpaper[]
   linkedGoogleAccounts LinkedGoogleAccount[]
+  widgets              Widget[]
 }
 
 model Note {
@@ -66,6 +67,7 @@ model Bookmark {
   title     String
   url       String
   category  String   @default("General")
+  position  Int      @default(0)
   clicks    Int      @default(0)
   isShared  Boolean  @default(false)
   userId    String
@@ -108,4 +110,77 @@ model LinkedGoogleAccount {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+}
+
+model Widget {
+  id        String   @id
+  type      String
+  x         Int
+  y         Int
+  w         Int
+  h         Int
+  pageId    String   @default("dashboard")
+  config    String   @default("{}")
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== ISSUE TRACKING ====================
+
+model IssueProject {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  icon        String   @default("🗂️")
+  color       String   @default("#6366f1")
+  ownerId     String
+  inviteToken String   @unique @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  issues      Issue[]
+  members     IssueProjectMember[]
+}
+
+model IssueProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  userId    String
+  role      String   @default("member")
+  joinedAt  DateTime @default(now())
+
+  project   IssueProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Issue {
+  id          String    @id @default(uuid())
+  title       String
+  description String    @default("")
+  status      String    @default("open")
+  priority    String    @default("medium")
+  label       String    @default("")
+  position    Int       @default(0)
+  projectId   String
+  creatorId   String
+  assigneeId  String?
+  dueDate     DateTime?
+  closedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project     IssueProject  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  comments    IssueComment[]
+}
+
+model IssueComment {
+  id        String   @id @default(uuid())
+  text      String
+  issueId   String
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  issue     Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
 }

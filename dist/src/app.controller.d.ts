@@ -118,8 +118,8 @@ export declare class AppController {
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
+        userId: string;
     })[]>;
     createNote(body: {
         title: string;
@@ -138,8 +138,8 @@ export declare class AppController {
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
+        userId: string;
     }>;
     updateNote(id: string, body: {
         title: string;
@@ -157,8 +157,8 @@ export declare class AppController {
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
+        userId: string;
     }>;
     deleteNote(id: string): Promise<{
         id: string;
@@ -166,8 +166,8 @@ export declare class AppController {
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
+        userId: string;
     }>;
     getAllTasks(): Promise<({
         assignee: {
@@ -259,37 +259,38 @@ export declare class AppController {
         creatorId: string;
     }>;
     getCustomWallpapers(userId: string): Promise<{
+        url: string;
         id: string;
         name: string;
         createdAt: Date;
         userId: string;
-        url: string;
     }[]>;
     uploadWallpaper(file: any, body: {
         name: string;
         userId: string;
     }): Promise<{
+        url: string;
         id: string;
         name: string;
         createdAt: Date;
         userId: string;
-        url: string;
     }>;
     deleteCustomWallpaper(id: string): Promise<{
+        url: string;
         id: string;
         name: string;
         createdAt: Date;
         userId: string;
-        url: string;
     }>;
     getAllBookmarks(userId?: string): Promise<{
+        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
-        url: string;
         category: string;
+        position: number;
         clicks: number;
     }[]>;
     createBookmark(body: {
@@ -298,46 +299,77 @@ export declare class AppController {
         category?: string;
         isShared: boolean;
         userId: string;
+        position?: number;
     }): Promise<{
+        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
-        url: string;
         category: string;
+        position: number;
         clicks: number;
     }>;
     updateBookmark(id: string, updates: Record<string, unknown>): Promise<{
+        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
-        url: string;
         category: string;
+        position: number;
         clicks: number;
     }>;
     deleteBookmark(id: string): Promise<{
+        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
-        url: string;
         category: string;
+        position: number;
         clicks: number;
     }>;
     incrementBookmarkClick(id: string): Promise<{
+        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
-        url: string;
         category: string;
+        position: number;
         clicks: number;
     }>;
+    getWidgets(userId: string, pageId: string): Promise<{
+        config: any;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        type: string;
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+        pageId: string;
+    }[]>;
+    syncWidgets(body: {
+        userId: string;
+        pageId: string;
+        widgets: Array<{
+            id: string;
+            type: string;
+            x: number;
+            y: number;
+            w: number;
+            h: number;
+            config?: Record<string, any>;
+        }>;
+    }): Promise<any[]>;
     getReminders(userId: string): Promise<{
         id: string;
         createdAt: Date;
@@ -452,4 +484,251 @@ export declare class AppController {
     }>>;
     googleLoginRedirect(res: Response): void | Response<any, Record<string, any>>;
     googleCallback(code: string, res: Response): Promise<Response<any, Record<string, any>>>;
+    getIssueProjects(userId: string): Promise<({
+        _count: {
+            issues: number;
+        };
+        members: {
+            id: string;
+            userId: string;
+            projectId: string;
+            role: string;
+            joinedAt: Date;
+        }[];
+    } & {
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string;
+        icon: string;
+        color: string;
+        ownerId: string;
+        inviteToken: string;
+    })[]>;
+    createIssueProject(body: {
+        name: string;
+        description?: string;
+        icon?: string;
+        color?: string;
+        ownerId: string;
+    }): Promise<{
+        _count: {
+            issues: number;
+        };
+        members: {
+            id: string;
+            userId: string;
+            projectId: string;
+            role: string;
+            joinedAt: Date;
+        }[];
+    } & {
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string;
+        icon: string;
+        color: string;
+        ownerId: string;
+        inviteToken: string;
+    }>;
+    updateIssueProject(id: string, updates: {
+        name?: string;
+        description?: string;
+        icon?: string;
+        color?: string;
+    }): Promise<{
+        _count: {
+            issues: number;
+        };
+        members: {
+            id: string;
+            userId: string;
+            projectId: string;
+            role: string;
+            joinedAt: Date;
+        }[];
+    } & {
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string;
+        icon: string;
+        color: string;
+        ownerId: string;
+        inviteToken: string;
+    }>;
+    deleteIssueProject(id: string): Promise<{
+        id: string;
+    }>;
+    joinProjectByToken(body: {
+        token: string;
+        userId: string;
+    }): Promise<({
+        _count: {
+            issues: number;
+        };
+        members: {
+            id: string;
+            userId: string;
+            projectId: string;
+            role: string;
+            joinedAt: Date;
+        }[];
+    } & {
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string;
+        icon: string;
+        color: string;
+        ownerId: string;
+        inviteToken: string;
+    }) | null>;
+    regenerateInviteToken(id: string): Promise<{
+        inviteToken: string;
+    }>;
+    removeProjectMember(projectId: string, userId: string): Promise<{
+        projectId: string;
+        userId: string;
+    }>;
+    getIssues(projectId: string, status?: string): Promise<({
+        _count: {
+            comments: number;
+        };
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        title: string;
+        updatedAt: Date;
+        description: string;
+        priority: string;
+        dueDate: Date | null;
+        assigneeId: string | null;
+        creatorId: string;
+        position: number;
+        projectId: string;
+        label: string;
+        closedAt: Date | null;
+    })[]>;
+    getIssue(id: string): Promise<({
+        comments: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            text: string;
+            issueId: string;
+            authorId: string;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        title: string;
+        updatedAt: Date;
+        description: string;
+        priority: string;
+        dueDate: Date | null;
+        assigneeId: string | null;
+        creatorId: string;
+        position: number;
+        projectId: string;
+        label: string;
+        closedAt: Date | null;
+    }) | null>;
+    createIssue(body: {
+        title: string;
+        description?: string;
+        priority?: string;
+        label?: string;
+        projectId: string;
+        creatorId: string;
+        assigneeId?: string;
+        dueDate?: string;
+    }): Promise<{
+        _count: {
+            comments: number;
+        };
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        title: string;
+        updatedAt: Date;
+        description: string;
+        priority: string;
+        dueDate: Date | null;
+        assigneeId: string | null;
+        creatorId: string;
+        position: number;
+        projectId: string;
+        label: string;
+        closedAt: Date | null;
+    }>;
+    updateIssue(id: string, updates: Record<string, unknown>): Promise<{
+        _count: {
+            comments: number;
+        };
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        title: string;
+        updatedAt: Date;
+        description: string;
+        priority: string;
+        dueDate: Date | null;
+        assigneeId: string | null;
+        creatorId: string;
+        position: number;
+        projectId: string;
+        label: string;
+        closedAt: Date | null;
+    }>;
+    deleteIssue(id: string): Promise<{
+        id: string;
+    }>;
+    reorderIssues(body: {
+        projectId: string;
+        orderedIds: string[];
+    }): Promise<{
+        ok: boolean;
+    }>;
+    getIssueComments(issueId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        text: string;
+        issueId: string;
+        authorId: string;
+    }[]>;
+    createIssueComment(issueId: string, body: {
+        text: string;
+        authorId: string;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        text: string;
+        issueId: string;
+        authorId: string;
+    }>;
+    updateIssueComment(id: string, body: {
+        text: string;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        text: string;
+        issueId: string;
+        authorId: string;
+    }>;
+    deleteIssueComment(id: string): Promise<{
+        id: string;
+    }>;
 }

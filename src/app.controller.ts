@@ -40,7 +40,12 @@ export class AppController {
   @Patch('users/:id/settings')
   updateUserSettings(
     @Param('id') id: string,
-    @Body() body: { accentColor?: string; blurIntensity?: string; clockFormat24h?: boolean }
+    @Body()
+    body: {
+      accentColor?: string;
+      blurIntensity?: string;
+      clockFormat24h?: boolean;
+    },
   ) {
     return this.appService.updateUserSettings(id, body);
   }
@@ -48,7 +53,8 @@ export class AppController {
   @Patch('users/:id/profile')
   updateUserProfile(
     @Param('id') id: string,
-    @Body() body: { name?: string; email?: string; password?: string; avatar?: string },
+    @Body()
+    body: { name?: string; email?: string; password?: string; avatar?: string },
   ) {
     return this.appService.updateUserProfile(id, body);
   }
@@ -61,13 +67,22 @@ export class AppController {
   @Post('users/:id/google-accounts')
   linkGoogleAccount(
     @Param('id') id: string,
-    @Body() body: { googleEmail: string; displayName?: string; avatarUrl?: string },
+    @Body()
+    body: { googleEmail: string; displayName?: string; avatarUrl?: string },
   ) {
-    return this.appService.linkGoogleAccount(id, body.googleEmail, body.displayName, body.avatarUrl);
+    return this.appService.linkGoogleAccount(
+      id,
+      body.googleEmail,
+      body.displayName,
+      body.avatarUrl,
+    );
   }
 
   @Delete('users/:id/google-accounts/:googleEmail')
-  unlinkGoogleAccount(@Param('id') id: string, @Param('googleEmail') googleEmail: string) {
+  unlinkGoogleAccount(
+    @Param('id') id: string,
+    @Param('googleEmail') googleEmail: string,
+  ) {
     return this.appService.unlinkGoogleAccount(id, googleEmail);
   }
 
@@ -179,7 +194,7 @@ export class AppController {
     if (!file) {
       throw new Error('No file uploaded');
     }
-    
+
     let imageUrl = '';
     try {
       if (
@@ -195,7 +210,11 @@ export class AppController {
       imageUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
     }
 
-    return this.appService.createCustomWallpaper(body.name, imageUrl, body.userId);
+    return this.appService.createCustomWallpaper(
+      body.name,
+      imageUrl,
+      body.userId,
+    );
   }
 
   @Delete('wallpapers/:id')
@@ -219,6 +238,7 @@ export class AppController {
       category?: string;
       isShared: boolean;
       userId: string;
+      position?: number;
     },
   ) {
     return this.appService.createBookmark(
@@ -227,6 +247,7 @@ export class AppController {
       body.category || 'General',
       body.isShared,
       body.userId,
+      body.position,
     );
   }
 
@@ -246,6 +267,33 @@ export class AppController {
   @Post('bookmarks/:id/click')
   incrementBookmarkClick(@Param('id') id: string) {
     return this.appService.incrementBookmarkClick(id);
+  }
+
+  // ==================== WIDGETS ====================
+
+  @Get('widgets')
+  getWidgets(@Query('userId') userId: string, @Query('pageId') pageId: string) {
+    return this.appService.getWidgets(userId, pageId);
+  }
+
+  @Post('widgets/sync')
+  syncWidgets(
+    @Body()
+    body: {
+      userId: string;
+      pageId: string;
+      widgets: Array<{
+        id: string;
+        type: string;
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+        config?: Record<string, any>;
+      }>;
+    },
+  ) {
+    return this.appService.syncWidgets(body.userId, body.pageId, body.widgets);
   }
 
   // ==================== REMINDERS ====================
@@ -367,10 +415,7 @@ export class AppController {
       if (!code) {
         throw new Error('Authorization code not provided by Google.');
       }
-      const result = (await this.appService.handleGoogleCallback(code)) as {
-        user: Record<string, unknown>;
-        googleEmail: string;
-      };
+      const result = await this.appService.handleGoogleCallback(code);
       const { user, googleEmail } = result;
       res.setHeader('Content-Type', 'text/html');
       return res.send(`
@@ -413,5 +458,140 @@ export class AppController {
       `);
     }
   }
-}
 
+  // ==================== ISSUE PROJECTS ====================
+
+  @Get('issue-projects')
+  getIssueProjects(@Query('userId') userId: string) {
+    return this.appService.getIssueProjects(userId);
+  }
+
+  @Post('issue-projects')
+  createIssueProject(
+    @Body()
+    body: {
+      name: string;
+      description?: string;
+      icon?: string;
+      color?: string;
+      ownerId: string;
+    },
+  ) {
+    return this.appService.createIssueProject(
+      body.name,
+      body.description || '',
+      body.icon || '🗂️',
+      body.color || '#6366f1',
+      body.ownerId,
+    );
+  }
+
+  @Patch('issue-projects/:id')
+  updateIssueProject(
+    @Param('id') id: string,
+    @Body() updates: { name?: string; description?: string; icon?: string; color?: string },
+  ) {
+    return this.appService.updateIssueProject(id, updates);
+  }
+
+  @Delete('issue-projects/:id')
+  deleteIssueProject(@Param('id') id: string) {
+    return this.appService.deleteIssueProject(id);
+  }
+
+  @Post('issue-projects/join')
+  joinProjectByToken(@Body() body: { token: string; userId: string }) {
+    return this.appService.joinProjectByToken(body.token, body.userId);
+  }
+
+  @Post('issue-projects/:id/regenerate-token')
+  regenerateInviteToken(@Param('id') id: string) {
+    return this.appService.regenerateInviteToken(id);
+  }
+
+  @Delete('issue-projects/:projectId/members/:userId')
+  removeProjectMember(
+    @Param('projectId') projectId: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.appService.removeProjectMember(projectId, userId);
+  }
+
+  // ==================== ISSUES ====================
+
+  @Get('issues')
+  getIssues(
+    @Query('projectId') projectId: string,
+    @Query('status') status?: string,
+  ) {
+    return this.appService.getIssues(projectId, status);
+  }
+
+  @Get('issues/:id')
+  getIssue(@Param('id') id: string) {
+    return this.appService.getIssue(id);
+  }
+
+  @Post('issues')
+  createIssue(
+    @Body()
+    body: {
+      title: string;
+      description?: string;
+      priority?: string;
+      label?: string;
+      projectId: string;
+      creatorId: string;
+      assigneeId?: string;
+      dueDate?: string;
+    },
+  ) {
+    return this.appService.createIssue(body);
+  }
+
+  @Patch('issues/:id')
+  updateIssue(
+    @Param('id') id: string,
+    @Body() updates: Record<string, unknown>,
+  ) {
+    return this.appService.updateIssue(id, updates);
+  }
+
+  @Delete('issues/:id')
+  deleteIssue(@Param('id') id: string) {
+    return this.appService.deleteIssue(id);
+  }
+
+  @Post('issues/reorder')
+  reorderIssues(@Body() body: { projectId: string; orderedIds: string[] }) {
+    return this.appService.reorderIssues(body.projectId, body.orderedIds);
+  }
+
+  // ==================== ISSUE COMMENTS ====================
+
+  @Get('issues/:issueId/comments')
+  getIssueComments(@Param('issueId') issueId: string) {
+    return this.appService.getIssueComments(issueId);
+  }
+
+  @Post('issues/:issueId/comments')
+  createIssueComment(
+    @Param('issueId') issueId: string,
+    @Body() body: { text: string; authorId: string },
+  ) {
+    return this.appService.createIssueComment(body.text, issueId, body.authorId);
+  }
+
+  @Patch('issue-comments/:id')
+  updateIssueComment(
+    @Param('id') id: string,
+    @Body() body: { text: string },
+  ) {
+    return this.appService.updateIssueComment(id, body.text);
+  }
+
+  @Delete('issue-comments/:id')
+  deleteIssueComment(@Param('id') id: string) {
+    return this.appService.deleteIssueComment(id);
+  }
+}

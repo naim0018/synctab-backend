@@ -100,7 +100,7 @@ let AppController = class AppController {
         return this.appService.getAllBookmarks(userId);
     }
     createBookmark(body) {
-        return this.appService.createBookmark(body.title, body.url, body.category || 'General', body.isShared, body.userId);
+        return this.appService.createBookmark(body.title, body.url, body.category || 'General', body.isShared, body.userId, body.position);
     }
     updateBookmark(id, updates) {
         return this.appService.updateBookmark(id, updates);
@@ -110,6 +110,12 @@ let AppController = class AppController {
     }
     incrementBookmarkClick(id) {
         return this.appService.incrementBookmarkClick(id);
+    }
+    getWidgets(userId, pageId) {
+        return this.appService.getWidgets(userId, pageId);
+    }
+    syncWidgets(body) {
+        return this.appService.syncWidgets(body.userId, body.pageId, body.widgets);
     }
     getReminders(userId) {
         return this.appService.getReminders(userId);
@@ -177,7 +183,7 @@ let AppController = class AppController {
             if (!code) {
                 throw new Error('Authorization code not provided by Google.');
             }
-            const result = (await this.appService.handleGoogleCallback(code));
+            const result = await this.appService.handleGoogleCallback(code);
             const { user, googleEmail } = result;
             res.setHeader('Content-Type', 'text/html');
             return res.send(`
@@ -220,6 +226,57 @@ let AppController = class AppController {
         </html>
       `);
         }
+    }
+    getIssueProjects(userId) {
+        return this.appService.getIssueProjects(userId);
+    }
+    createIssueProject(body) {
+        return this.appService.createIssueProject(body.name, body.description || '', body.icon || '🗂️', body.color || '#6366f1', body.ownerId);
+    }
+    updateIssueProject(id, updates) {
+        return this.appService.updateIssueProject(id, updates);
+    }
+    deleteIssueProject(id) {
+        return this.appService.deleteIssueProject(id);
+    }
+    joinProjectByToken(body) {
+        return this.appService.joinProjectByToken(body.token, body.userId);
+    }
+    regenerateInviteToken(id) {
+        return this.appService.regenerateInviteToken(id);
+    }
+    removeProjectMember(projectId, userId) {
+        return this.appService.removeProjectMember(projectId, userId);
+    }
+    getIssues(projectId, status) {
+        return this.appService.getIssues(projectId, status);
+    }
+    getIssue(id) {
+        return this.appService.getIssue(id);
+    }
+    createIssue(body) {
+        return this.appService.createIssue(body);
+    }
+    updateIssue(id, updates) {
+        return this.appService.updateIssue(id, updates);
+    }
+    deleteIssue(id) {
+        return this.appService.deleteIssue(id);
+    }
+    reorderIssues(body) {
+        return this.appService.reorderIssues(body.projectId, body.orderedIds);
+    }
+    getIssueComments(issueId) {
+        return this.appService.getIssueComments(issueId);
+    }
+    createIssueComment(issueId, body) {
+        return this.appService.createIssueComment(body.text, issueId, body.authorId);
+    }
+    updateIssueComment(id, body) {
+        return this.appService.updateIssueComment(id, body.text);
+    }
+    deleteIssueComment(id) {
+        return this.appService.deleteIssueComment(id);
     }
 };
 exports.AppController = AppController;
@@ -400,6 +457,21 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "incrementBookmarkClick", null);
 __decorate([
+    (0, common_1.Get)('widgets'),
+    __param(0, (0, common_1.Query)('userId')),
+    __param(1, (0, common_1.Query)('pageId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getWidgets", null);
+__decorate([
+    (0, common_1.Post)('widgets/sync'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "syncWidgets", null);
+__decorate([
     (0, common_1.Get)('reminders'),
     __param(0, (0, common_1.Query)('userId')),
     __metadata("design:type", Function),
@@ -476,6 +548,131 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], AppController.prototype, "googleCallback", null);
+__decorate([
+    (0, common_1.Get)('issue-projects'),
+    __param(0, (0, common_1.Query)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getIssueProjects", null);
+__decorate([
+    (0, common_1.Post)('issue-projects'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "createIssueProject", null);
+__decorate([
+    (0, common_1.Patch)('issue-projects/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "updateIssueProject", null);
+__decorate([
+    (0, common_1.Delete)('issue-projects/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "deleteIssueProject", null);
+__decorate([
+    (0, common_1.Post)('issue-projects/join'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "joinProjectByToken", null);
+__decorate([
+    (0, common_1.Post)('issue-projects/:id/regenerate-token'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "regenerateInviteToken", null);
+__decorate([
+    (0, common_1.Delete)('issue-projects/:projectId/members/:userId'),
+    __param(0, (0, common_1.Param)('projectId')),
+    __param(1, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "removeProjectMember", null);
+__decorate([
+    (0, common_1.Get)('issues'),
+    __param(0, (0, common_1.Query)('projectId')),
+    __param(1, (0, common_1.Query)('status')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getIssues", null);
+__decorate([
+    (0, common_1.Get)('issues/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getIssue", null);
+__decorate([
+    (0, common_1.Post)('issues'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "createIssue", null);
+__decorate([
+    (0, common_1.Patch)('issues/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "updateIssue", null);
+__decorate([
+    (0, common_1.Delete)('issues/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "deleteIssue", null);
+__decorate([
+    (0, common_1.Post)('issues/reorder'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "reorderIssues", null);
+__decorate([
+    (0, common_1.Get)('issues/:issueId/comments'),
+    __param(0, (0, common_1.Param)('issueId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getIssueComments", null);
+__decorate([
+    (0, common_1.Post)('issues/:issueId/comments'),
+    __param(0, (0, common_1.Param)('issueId')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "createIssueComment", null);
+__decorate([
+    (0, common_1.Patch)('issue-comments/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "updateIssueComment", null);
+__decorate([
+    (0, common_1.Delete)('issue-comments/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "deleteIssueComment", null);
 exports.AppController = AppController = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [app_service_1.AppService])

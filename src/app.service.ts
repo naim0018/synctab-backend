@@ -4,6 +4,7 @@ import { AppGateway } from './app.gateway';
 import { Prisma } from '@prisma/client';
 import { hashPassword, verifyPassword } from './auth.helper';
 import { OAuth2Client } from 'google-auth-library';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AppService {
@@ -57,7 +58,11 @@ export class AppService {
 
   async updateUserSettings(
     id: string,
-    settings: { accentColor?: string; blurIntensity?: string; clockFormat24h?: boolean }
+    settings: {
+      accentColor?: string;
+      blurIntensity?: string;
+      clockFormat24h?: boolean;
+    },
   ) {
     return this.prisma.user.update({
       where: { id },
@@ -254,7 +259,11 @@ export class AppService {
     if (!userId) {
       return this.prisma.bookmark.findMany({
         where: { isShared: true },
-        orderBy: [{ clicks: 'desc' }, { createdAt: 'desc' }],
+        orderBy: [
+          { position: 'asc' },
+          { clicks: 'desc' },
+          { createdAt: 'desc' },
+        ],
       });
     }
 
@@ -262,7 +271,9 @@ export class AppService {
     const linksFromUser = await this.prisma.linkedGoogleAccount.findMany({
       where: { userId },
     });
-    const emailsFromUser = linksFromUser.map(l => l.googleEmail).filter(Boolean);
+    const emailsFromUser = linksFromUser
+      .map((l) => l.googleEmail)
+      .filter(Boolean);
 
     // Find user IDs for those emails
     const usersFromUserLinks = await this.prisma.user.findMany({
@@ -282,20 +293,19 @@ export class AppService {
         })
       : [];
 
-    const allUserIds = Array.from(new Set([
-      userId,
-      ...usersFromUserLinks.map(u => u.id),
-      ...linksToUser.map(l => l.userId),
-    ]));
+    const allUserIds = Array.from(
+      new Set([
+        userId,
+        ...usersFromUserLinks.map((u) => u.id),
+        ...linksToUser.map((l) => l.userId),
+      ]),
+    );
 
     return this.prisma.bookmark.findMany({
       where: {
-        OR: [
-          { isShared: true },
-          { userId: { in: allUserIds } }
-        ],
+        OR: [{ isShared: true }, { userId: { in: allUserIds } }],
       },
-      orderBy: [{ clicks: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ position: 'asc' }, { clicks: 'desc' }, { createdAt: 'desc' }],
     });
   }
 
@@ -305,6 +315,7 @@ export class AppService {
     category: string,
     isShared: boolean,
     userId: string,
+    position?: number,
   ) {
     const bookmark = await this.prisma.bookmark.create({
       data: {
@@ -313,6 +324,7 @@ export class AppService {
         category: category || 'General',
         isShared,
         userId,
+        position: position ?? 0,
       },
     });
 
@@ -349,6 +361,63 @@ export class AppService {
     });
     this.gateway.broadcastBookmarkUpdate('update', bookmark);
     return bookmark;
+  }
+
+  // ==================== WIDGET OPERATIONS ====================
+
+  async getWidgets(userId: string, pageId: string) {
+    const widgets = await this.prisma.widget.findMany({
+      where: { userId, pageId },
+      orderBy: { createdAt: 'asc' },
+    });
+    return widgets.map((w) => ({
+      ...w,
+      config: JSON.parse(w.config),
+    }));
+  }
+
+  async syncWidgets(
+    userId: string,
+    pageId: string,
+    widgets: Array<{
+      id: string;
+      type: string;
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+      config?: Record<string, any>;
+    }>,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Delete all existing widgets for this page and user
+      await tx.widget.deleteMany({
+        where: { userId, pageId },
+      });
+
+      // 2. Create the new widgets
+      const createdWidgets: any[] = [];
+      for (const w of widgets) {
+        const created = await tx.widget.create({
+          data: {
+            id: w.id,
+            type: w.type,
+            x: w.x,
+            y: w.y,
+            w: w.w,
+            h: w.h,
+            pageId,
+            config: w.config ? JSON.stringify(w.config) : '{}',
+            userId,
+          },
+        });
+        createdWidgets.push({
+          ...created,
+          config: JSON.parse(created.config),
+        });
+      }
+      return createdWidgets;
+    });
   }
 
   // ==================== REMINDER OPERATIONS ====================
@@ -575,7 +644,12 @@ export class AppService {
       });
       // Auto-link this Google email
       await this.prisma.linkedGoogleAccount.create({
-        data: { googleEmail: email, displayName: name, avatarUrl: avatar, userId: user.id },
+        data: {
+          googleEmail: email,
+          displayName: name,
+          avatarUrl: avatar,
+          userId: user.id,
+        },
       });
     }
 
@@ -588,7 +662,12 @@ export class AppService {
 
   async updateUserProfile(
     id: string,
-    updates: { name?: string; email?: string; password?: string; avatar?: string },
+    updates: {
+      name?: string;
+      email?: string;
+      password?: string;
+      avatar?: string;
+    },
   ) {
     const existing = await this.prisma.user.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('User not found');
@@ -598,7 +677,9 @@ export class AppService {
     if (updates.avatar !== undefined) data.avatar = updates.avatar;
     if (updates.email !== undefined && updates.email !== existing.email) {
       // Check email uniqueness
-      const emailUser = await this.prisma.user.findUnique({ where: { email: updates.email } });
+      const emailUser = await this.prisma.user.findUnique({
+        where: { email: updates.email },
+      });
       if (emailUser && emailUser.id !== id) {
         throw new Error('Email is already in use by another account.');
       }
@@ -621,7 +702,12 @@ export class AppService {
     });
   }
 
-  async linkGoogleAccount(userId: string, googleEmail: string, displayName?: string, avatarUrl?: string) {
+  async linkGoogleAccount(
+    userId: string,
+    googleEmail: string,
+    displayName?: string,
+    avatarUrl?: string,
+  ) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -647,8 +733,7 @@ export class AppService {
       //   - They have no data (notes, bookmarks, tasks, reminders, etc.)
       const otherUser = existing.user;
       const isOAuthCreatedOrphan =
-        otherUser.email === googleEmail &&
-        !otherUser.password;
+        otherUser.email === googleEmail && !otherUser.password;
 
       if (!isOAuthCreatedOrphan) {
         throw new Error(
@@ -778,7 +863,12 @@ export class AppService {
       });
       // Auto-link the primary Google email
       await this.prisma.linkedGoogleAccount.create({
-        data: { googleEmail: email, displayName: name, avatarUrl: avatar, userId: user.id },
+        data: {
+          googleEmail: email,
+          displayName: name,
+          avatarUrl: avatar,
+          userId: user.id,
+        },
       });
     }
 
@@ -788,5 +878,219 @@ export class AppService {
     delete userWithoutPassword.password;
     return { user: userWithoutPassword, googleEmail: email };
   }
-}
 
+  // ==================== ISSUE PROJECTS ====================
+
+  async getIssueProjects(userId: string) {
+    // Return projects where user is owner or member
+    const memberProjects = await this.prisma.issueProjectMember.findMany({
+      where: { userId },
+      select: { projectId: true },
+    });
+    const projectIds = memberProjects.map((m) => m.projectId);
+
+    return this.prisma.issueProject.findMany({
+      where: {
+        OR: [{ ownerId: userId }, { id: { in: projectIds } }],
+      },
+      include: {
+        members: true,
+        _count: { select: { issues: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createIssueProject(
+    name: string,
+    description: string,
+    icon: string,
+    color: string,
+    ownerId: string,
+  ) {
+    const project = await this.prisma.issueProject.create({
+      data: { name, description, icon, color, ownerId },
+      include: { members: true, _count: { select: { issues: true } } },
+    });
+    // Add owner as member with owner role
+    await this.prisma.issueProjectMember.create({
+      data: { projectId: project.id, userId: ownerId, role: 'owner' },
+    });
+    this.gateway.server.emit('issue_project_created', project);
+    return project;
+  }
+
+  async updateIssueProject(
+    id: string,
+    updates: { name?: string; description?: string; icon?: string; color?: string },
+  ) {
+    const project = await this.prisma.issueProject.update({
+      where: { id },
+      data: updates,
+      include: { members: true, _count: { select: { issues: true } } },
+    });
+    this.gateway.server.emit('issue_project_updated', project);
+    return project;
+  }
+
+  async deleteIssueProject(id: string) {
+    await this.prisma.issueProject.delete({ where: { id } });
+    this.gateway.server.emit('issue_project_deleted', { id });
+    return { id };
+  }
+
+  async joinProjectByToken(token: string, userId: string) {
+    const project = await this.prisma.issueProject.findUnique({
+      where: { inviteToken: token },
+    });
+    if (!project) throw new NotFoundException('Invalid invite token');
+
+    const existing = await this.prisma.issueProjectMember.findFirst({
+      where: { projectId: project.id, userId },
+    });
+    if (!existing) {
+      await this.prisma.issueProjectMember.create({
+        data: { projectId: project.id, userId, role: 'member' },
+      });
+    }
+    return this.prisma.issueProject.findUnique({
+      where: { id: project.id },
+      include: { members: true, _count: { select: { issues: true } } },
+    });
+  }
+
+  async regenerateInviteToken(projectId: string) {
+    const project = await this.prisma.issueProject.update({
+      where: { id: projectId },
+      data: { inviteToken: randomUUID() },
+    });
+    return { inviteToken: project.inviteToken };
+  }
+
+  async removeProjectMember(projectId: string, userId: string) {
+    await this.prisma.issueProjectMember.deleteMany({
+      where: { projectId, userId },
+    });
+    this.gateway.server.emit('project_member_removed', { projectId, userId });
+    return { projectId, userId };
+  }
+
+  // ==================== ISSUES ====================
+
+  async getIssues(projectId: string, status?: string) {
+    return this.prisma.issue.findMany({
+      where: {
+        projectId,
+        ...(status ? { status } : {}),
+      },
+      include: {
+        _count: { select: { comments: true } },
+      },
+      orderBy: [{ position: 'asc' }, { createdAt: 'desc' }],
+    });
+  }
+
+  async getIssue(id: string) {
+    return this.prisma.issue.findUnique({
+      where: { id },
+      include: {
+        comments: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+  }
+
+  async createIssue(data: {
+    title: string;
+    description?: string;
+    priority?: string;
+    label?: string;
+    projectId: string;
+    creatorId: string;
+    assigneeId?: string;
+    dueDate?: string;
+  }) {
+    const count = await this.prisma.issue.count({ where: { projectId: data.projectId } });
+    const issue = await this.prisma.issue.create({
+      data: {
+        title: data.title,
+        description: data.description || '',
+        priority: data.priority || 'medium',
+        label: data.label || '',
+        projectId: data.projectId,
+        creatorId: data.creatorId,
+        assigneeId: data.assigneeId,
+        dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        position: count,
+        status: 'open',
+      },
+      include: { _count: { select: { comments: true } } },
+    });
+    this.gateway.server.emit('issue_created', issue);
+    return issue;
+  }
+
+  async updateIssue(id: string, updates: Record<string, unknown>) {
+    const data: Record<string, unknown> = { ...updates };
+    if (updates.dueDate) data.dueDate = new Date(updates.dueDate as string);
+    if (updates.status === 'done' || updates.status === 'closed') {
+      data.closedAt = new Date();
+    } else if (updates.status === 'open' || updates.status === 'in_progress') {
+      data.closedAt = null;
+    }
+    const issue = await this.prisma.issue.update({
+      where: { id },
+      data,
+      include: { _count: { select: { comments: true } } },
+    });
+    this.gateway.server.emit('issue_updated', issue);
+    return issue;
+  }
+
+  async deleteIssue(id: string) {
+    await this.prisma.issue.delete({ where: { id } });
+    this.gateway.server.emit('issue_deleted', { id });
+    return { id };
+  }
+
+  async reorderIssues(projectId: string, orderedIds: string[]) {
+    await Promise.all(
+      orderedIds.map((id, index) =>
+        this.prisma.issue.update({ where: { id }, data: { position: index } }),
+      ),
+    );
+    this.gateway.server.emit('issues_reordered', { projectId, orderedIds });
+    return { ok: true };
+  }
+
+  // ==================== ISSUE COMMENTS ====================
+
+  async getIssueComments(issueId: string) {
+    return this.prisma.issueComment.findMany({
+      where: { issueId },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async createIssueComment(text: string, issueId: string, authorId: string) {
+    const comment = await this.prisma.issueComment.create({
+      data: { text, issueId, authorId },
+    });
+    this.gateway.server.emit('issue_comment_added', comment);
+    return comment;
+  }
+
+  async updateIssueComment(id: string, text: string) {
+    const comment = await this.prisma.issueComment.update({
+      where: { id },
+      data: { text },
+    });
+    this.gateway.server.emit('issue_comment_updated', comment);
+    return comment;
+  }
+
+  async deleteIssueComment(id: string) {
+    await this.prisma.issueComment.delete({ where: { id } });
+    this.gateway.server.emit('issue_comment_deleted', { id });
+    return { id };
+  }
+}

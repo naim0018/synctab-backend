@@ -21,9 +21,12 @@ let HttpExceptionFilter = class HttpExceptionFilter {
         let message = 'Internal server error';
         if (exception instanceof common_1.HttpException) {
             const resContent = exception.getResponse();
-            message = typeof resContent === 'object' && resContent.message
-                ? (Array.isArray(resContent.message) ? resContent.message.join(', ') : resContent.message)
-                : exception.message;
+            message =
+                typeof resContent === 'object' && resContent.message
+                    ? Array.isArray(resContent.message)
+                        ? resContent.message.join(', ')
+                        : resContent.message
+                    : exception.message;
         }
         else if (exception instanceof Error) {
             message = exception.message;
