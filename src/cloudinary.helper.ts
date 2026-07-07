@@ -18,7 +18,10 @@ export async function uploadToCloudinary(
         public_id: `${Date.now()}_${fileName.replace(/\.[^/.]+$/, '')}`,
       },
       (error, result) => {
-        if (error) return reject(error);
+        if (error) {
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          return reject(error);
+        }
         if (!result)
           return reject(
             new Error('Cloudinary upload returned undefined result'),

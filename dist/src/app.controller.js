@@ -22,6 +22,13 @@ let AppController = class AppController {
     constructor(appService) {
         this.appService = appService;
     }
+    getHello() {
+        return {
+            message: 'SyncTab Backend API is running smoothly!',
+            version: '1.0.0',
+            status: 'online',
+        };
+    }
     getAllUsers() {
         return this.appService.getAllUsers();
     }
@@ -88,7 +95,7 @@ let AppController = class AppController {
                 imageUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
             }
         }
-        catch (err) {
+        catch {
             imageUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
         }
         return this.appService.createCustomWallpaper(body.name, imageUrl, body.userId);
@@ -280,6 +287,12 @@ let AppController = class AppController {
     }
 };
 exports.AppController = AppController;
+__decorate([
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getHello", null);
 __decorate([
     (0, common_1.Get)('users'),
     __metadata("design:type", Function),

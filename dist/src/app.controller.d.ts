@@ -3,6 +3,11 @@ import { AppService } from './app.service';
 export declare class AppController {
     private readonly appService;
     constructor(appService: AppService);
+    getHello(): {
+        message: string;
+        version: string;
+        status: string;
+    };
     getAllUsers(): Promise<{
         id: string;
         name: string;
@@ -265,7 +270,7 @@ export declare class AppController {
         createdAt: Date;
         userId: string;
     }[]>;
-    uploadWallpaper(file: any, body: {
+    uploadWallpaper(file: Express.Multer.File, body: {
         name: string;
         userId: string;
     }): Promise<{
@@ -345,7 +350,7 @@ export declare class AppController {
         clicks: number;
     }>;
     getWidgets(userId: string, pageId: string): Promise<{
-        config: any;
+        config: Record<string, unknown>;
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -369,7 +374,7 @@ export declare class AppController {
             h: number;
             config?: Record<string, any>;
         }>;
-    }): Promise<any[]>;
+    }): Promise<Record<string, unknown>[]>;
     getReminders(userId: string): Promise<{
         id: string;
         createdAt: Date;

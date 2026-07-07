@@ -20,6 +20,15 @@ import { uploadToCloudinary } from './cloudinary.helper';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Get()
+  getHello() {
+    return {
+      message: 'SyncTab Backend API is running smoothly!',
+      version: '1.0.0',
+      status: 'online',
+    };
+  }
+
   // ==================== USERS ====================
 
   @Get('users')
@@ -188,7 +197,7 @@ export class AppController {
   @Post('wallpapers/upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadWallpaper(
-    @UploadedFile() file: any,
+    @UploadedFile() file: Express.Multer.File,
     @Body() body: { name: string; userId: string },
   ) {
     if (!file) {
@@ -206,7 +215,7 @@ export class AppController {
       } else {
         imageUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
       }
-    } catch (err) {
+    } catch {
       imageUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
     }
 
@@ -489,7 +498,13 @@ export class AppController {
   @Patch('issue-projects/:id')
   updateIssueProject(
     @Param('id') id: string,
-    @Body() updates: { name?: string; description?: string; icon?: string; color?: string },
+    @Body()
+    updates: {
+      name?: string;
+      description?: string;
+      icon?: string;
+      color?: string;
+    },
   ) {
     return this.appService.updateIssueProject(id, updates);
   }
@@ -579,14 +594,15 @@ export class AppController {
     @Param('issueId') issueId: string,
     @Body() body: { text: string; authorId: string },
   ) {
-    return this.appService.createIssueComment(body.text, issueId, body.authorId);
+    return this.appService.createIssueComment(
+      body.text,
+      issueId,
+      body.authorId,
+    );
   }
 
   @Patch('issue-comments/:id')
-  updateIssueComment(
-    @Param('id') id: string,
-    @Body() body: { text: string },
-  ) {
+  updateIssueComment(@Param('id') id: string, @Body() body: { text: string }) {
     return this.appService.updateIssueComment(id, body.text);
   }
 

@@ -372,7 +372,7 @@ export class AppService {
     });
     return widgets.map((w) => ({
       ...w,
-      config: JSON.parse(w.config),
+      config: JSON.parse(w.config) as Record<string, unknown>,
     }));
   }
 
@@ -386,7 +386,7 @@ export class AppService {
       y: number;
       w: number;
       h: number;
-      config?: Record<string, any>;
+      config?: Record<string, unknown>;
     }>,
   ) {
     return this.prisma.$transaction(async (tx) => {
@@ -396,7 +396,7 @@ export class AppService {
       });
 
       // 2. Create the new widgets
-      const createdWidgets: any[] = [];
+      const createdWidgets: Record<string, unknown>[] = [];
       for (const w of widgets) {
         const created = await tx.widget.create({
           data: {
@@ -413,7 +413,7 @@ export class AppService {
         });
         createdWidgets.push({
           ...created,
-          config: JSON.parse(created.config),
+          config: JSON.parse(created.config) as Record<string, unknown>,
         });
       }
       return createdWidgets;
@@ -756,7 +756,7 @@ export class AppService {
         if (remainingLinks === 0) {
           await this.prisma.user.delete({ where: { id: otherUser.id } });
         }
-      } catch (_cleanupErr) {
+      } catch {
         // Non-fatal: orphan cleanup failure should not block the link operation
         console.warn('Could not clean up orphaned user:', otherUser.id);
       }
@@ -922,7 +922,12 @@ export class AppService {
 
   async updateIssueProject(
     id: string,
-    updates: { name?: string; description?: string; icon?: string; color?: string },
+    updates: {
+      name?: string;
+      description?: string;
+      icon?: string;
+      color?: string;
+    },
   ) {
     const project = await this.prisma.issueProject.update({
       where: { id },
@@ -1009,7 +1014,9 @@ export class AppService {
     assigneeId?: string;
     dueDate?: string;
   }) {
-    const count = await this.prisma.issue.count({ where: { projectId: data.projectId } });
+    const count = await this.prisma.issue.count({
+      where: { projectId: data.projectId },
+    });
     const issue = await this.prisma.issue.create({
       data: {
         title: data.title,

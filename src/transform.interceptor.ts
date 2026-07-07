@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { Response } from 'express';
 
 export interface ResponseFormat<T> {
   statusCode: number;
@@ -24,18 +25,19 @@ export class TransformInterceptor<T> implements NestInterceptor<
   ): Observable<ResponseFormat<T>> {
     // Only intercept HTTP requests
     if (context.getType() !== 'http') {
-      return next.handle();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return next.handle() as any;
     }
 
     const ctx = context.switchToHttp();
-    const response = ctx.getResponse();
+    const response = ctx.getResponse<Response>();
     const statusCode = response.statusCode || 200;
 
     return next.handle().pipe(
-      map((data) => ({
+      map((data: unknown) => ({
         statusCode,
         message: 'Success',
-        data: data !== undefined ? data : null,
+        data: (data !== undefined ? data : null) as T,
       })),
     );
   }

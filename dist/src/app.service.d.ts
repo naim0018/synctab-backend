@@ -268,7 +268,7 @@ export declare class AppService {
         clicks: number;
     }>;
     getWidgets(userId: string, pageId: string): Promise<{
-        config: any;
+        config: Record<string, unknown>;
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -287,8 +287,8 @@ export declare class AppService {
         y: number;
         w: number;
         h: number;
-        config?: Record<string, any>;
-    }>): Promise<any[]>;
+        config?: Record<string, unknown>;
+    }>): Promise<Record<string, unknown>[]>;
     getReminders(userId: string): Promise<{
         id: string;
         createdAt: Date;

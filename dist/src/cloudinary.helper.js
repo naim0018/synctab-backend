@@ -14,8 +14,9 @@ async function uploadToCloudinary(fileBuffer, fileName) {
             folder: 'synctab_wallpapers',
             public_id: `${Date.now()}_${fileName.replace(/\.[^/.]+$/, '')}`,
         }, (error, result) => {
-            if (error)
+            if (error) {
                 return reject(error);
+            }
             if (!result)
                 return reject(new Error('Cloudinary upload returned undefined result'));
             resolve(result.secure_url);

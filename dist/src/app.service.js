@@ -577,7 +577,7 @@ let AppService = class AppService {
                     await this.prisma.user.delete({ where: { id: otherUser.id } });
                 }
             }
-            catch (_cleanupErr) {
+            catch {
                 console.warn('Could not clean up orphaned user:', otherUser.id);
             }
             return updated;
@@ -766,7 +766,9 @@ let AppService = class AppService {
         });
     }
     async createIssue(data) {
-        const count = await this.prisma.issue.count({ where: { projectId: data.projectId } });
+        const count = await this.prisma.issue.count({
+            where: { projectId: data.projectId },
+        });
         const issue = await this.prisma.issue.create({
             data: {
                 title: data.title,

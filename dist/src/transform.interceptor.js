@@ -20,7 +20,7 @@ let TransformInterceptor = class TransformInterceptor {
         return next.handle().pipe((0, operators_1.map)((data) => ({
             statusCode,
             message: 'Success',
-            data: data !== undefined ? data : null,
+            data: (data !== undefined ? data : null),
         })));
     }
 };

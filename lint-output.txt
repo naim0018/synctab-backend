@@ -1,0 +1,45 @@
+
+> backend@0.0.1 lint
+> eslint "{src,apps,libs,test}/**/*.ts" --fix
+
+
+/run/media/naim0018/Primary1TB/Projects/SyncTab/backend/src/app.controller.ts
+  205:45  warning  Unsafe argument of type `any` assigned to a parameter of type `Buffer<ArrayBufferLike>`  @typescript-eslint/no-unsafe-argument
+  205:50  error    Unsafe member access .buffer on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  205:58  warning  Unsafe argument of type `any` assigned to a parameter of type `string`                   @typescript-eslint/no-unsafe-argument
+  205:63  error    Unsafe member access .originalname on an `any` value                                     @typescript-eslint/no-unsafe-member-access
+  207:33  error    Unsafe member access .mimetype on an `any` value                                         @typescript-eslint/no-unsafe-member-access
+  207:52  error    Unsafe call of an `any` typed value                                                      @typescript-eslint/no-unsafe-call
+  207:57  error    Unsafe member access .buffer on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  209:14  error    'err' is defined but never used                                                          @typescript-eslint/no-unused-vars
+  210:31  error    Unsafe member access .mimetype on an `any` value                                         @typescript-eslint/no-unsafe-member-access
+  210:50  error    Unsafe call of an `any` typed value                                                      @typescript-eslint/no-unsafe-call
+  210:55  error    Unsafe member access .buffer on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+
+/run/media/naim0018/Primary1TB/Projects/SyncTab/backend/src/app.service.ts
+  375:7   error  Unsafe assignment of an `any` value       @typescript-eslint/no-unsafe-assignment
+  416:11  error  Unsafe assignment of an `any` value       @typescript-eslint/no-unsafe-assignment
+  419:7   error  Unsafe return of a value of type `any[]`  @typescript-eslint/no-unsafe-return
+  759:16  error  '_cleanupErr' is defined but never used   @typescript-eslint/no-unused-vars
+
+/run/media/naim0018/Primary1TB/Projects/SyncTab/backend/src/cloudinary.helper.ts
+  21:27  error  Expected the Promise rejection reason to be an Error  @typescript-eslint/prefer-promise-reject-errors
+
+/run/media/naim0018/Primary1TB/Projects/SyncTab/backend/src/http-exception.filter.ts
+  29:7   error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  30:54  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+  31:38  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+  32:15  error  Unsafe call of an `any` typed value              @typescript-eslint/no-unsafe-call
+  32:26  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+  33:26  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+
+/run/media/naim0018/Primary1TB/Projects/SyncTab/backend/src/transform.interceptor.ts
+  27:7   error  Unsafe return of type `Observable<any>` from function with return type `Observable<ResponseFormat<T>>`  @typescript-eslint/no-unsafe-return
+  31:11  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  32:11  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  32:33  error  Unsafe member access .statusCode on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+  36:9   error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  38:9   error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+
+✖ 28 problems (26 errors, 2 warnings)
+
