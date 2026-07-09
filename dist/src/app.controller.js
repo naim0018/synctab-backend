@@ -100,6 +100,26 @@ let AppController = class AppController {
         }
         return this.appService.createCustomWallpaper(body.name, imageUrl, body.userId);
     }
+    async uploadGenericFile(file) {
+        if (!file) {
+            throw new Error('No file uploaded');
+        }
+        let url = '';
+        try {
+            if (process.env.CLOUDINARY_CLOUD_NAME &&
+                process.env.CLOUDINARY_API_KEY &&
+                process.env.CLOUDINARY_API_SECRET) {
+                url = await (0, cloudinary_helper_1.uploadToCloudinary)(file.buffer, file.originalname);
+            }
+            else {
+                url = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+            }
+        }
+        catch {
+            url = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+        }
+        return { url };
+    }
     deleteCustomWallpaper(id) {
         return this.appService.deleteCustomWallpaper(id);
     }
@@ -426,6 +446,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AppController.prototype, "uploadWallpaper", null);
+__decorate([
+    (0, common_1.Post)('upload'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    __param(0, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "uploadGenericFile", null);
 __decorate([
     (0, common_1.Delete)('wallpapers/:id'),
     __param(0, (0, common_1.Param)('id')),

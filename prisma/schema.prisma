@@ -185,3 +185,72 @@ model IssueComment {
 
   issue     Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
 }
+
+// ==================== CHAT ====================
+
+model Conversation {
+  id          String   @id @default(uuid())
+  name        String?  // null = DM, set = group name
+  isGroup     Boolean  @default(false)
+  avatar      String?  // group avatar emoji/url
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     ConversationMember[]
+  messages    ChatMessage[]
+}
+
+model ConversationMember {
+  id             String   @id @default(uuid())
+  conversationId String
+  userId         String
+  role           String   @default("member") // owner, admin, member
+  lastReadAt     DateTime @default(now())
+  joinedAt       DateTime @default(now())
+  isMuted        Boolean  @default(false)
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+model ChatMessage {
+  id             String    @id @default(uuid())
+  conversationId String
+  senderId       String
+  text           String
+  attachments    String    @default("[]") // JSON array of {name, url, type}
+  replyToId      String?
+  isDeleted      Boolean   @default(false)
+  editedAt       DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  reactions      MessageReaction[]
+  reads          MessageRead[]
+}
+
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+}
+
+model MessageRead {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+}

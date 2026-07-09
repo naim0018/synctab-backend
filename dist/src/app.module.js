@@ -12,14 +12,17 @@ const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const prisma_service_1 = require("./prisma.service");
 const app_gateway_1 = require("./app.gateway");
+const chat_gateway_1 = require("./chat.gateway");
+const chat_service_1 = require("./chat.service");
+const chat_controller_1 = require("./chat.controller");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [],
-        controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService, prisma_service_1.PrismaService, app_gateway_1.AppGateway],
+        controllers: [app_controller_1.AppController, chat_controller_1.ChatController],
+        providers: [app_service_1.AppService, prisma_service_1.PrismaService, app_gateway_1.AppGateway, chat_gateway_1.ChatGateway, chat_service_1.ChatService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

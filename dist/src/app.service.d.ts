@@ -73,8 +73,8 @@ export declare class AppService {
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
+        userId: string;
     })[]>;
     createNote(title: string, content: string, isShared: boolean, userId: string): Promise<{
         user: {
@@ -88,8 +88,8 @@ export declare class AppService {
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
+        userId: string;
     }>;
     updateNote(id: string, title: string, content: string, isShared: boolean): Promise<{
         user: {
@@ -103,8 +103,8 @@ export declare class AppService {
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
+        userId: string;
     }>;
     deleteNote(id: string): Promise<{
         id: string;
@@ -112,8 +112,8 @@ export declare class AppService {
         title: string;
         content: string;
         isShared: boolean;
-        userId: string;
         updatedAt: Date;
+        userId: string;
     }>;
     getAllTasks(): Promise<({
         assignee: {
@@ -130,9 +130,9 @@ export declare class AppService {
         id: string;
         status: string;
         createdAt: Date;
-        description: string | null;
         title: string;
         updatedAt: Date;
+        description: string | null;
         priority: string;
         dueDate: Date | null;
         assigneeId: string | null;
@@ -153,9 +153,9 @@ export declare class AppService {
         id: string;
         status: string;
         createdAt: Date;
-        description: string | null;
         title: string;
         updatedAt: Date;
+        description: string | null;
         priority: string;
         dueDate: Date | null;
         assigneeId: string | null;
@@ -176,9 +176,9 @@ export declare class AppService {
         id: string;
         status: string;
         createdAt: Date;
-        description: string | null;
         title: string;
         updatedAt: Date;
+        description: string | null;
         priority: string;
         dueDate: Date | null;
         assigneeId: string | null;
@@ -188,86 +188,86 @@ export declare class AppService {
         id: string;
         status: string;
         createdAt: Date;
-        description: string | null;
         title: string;
         updatedAt: Date;
+        description: string | null;
         priority: string;
         dueDate: Date | null;
         assigneeId: string | null;
         creatorId: string;
     }>;
     getCustomWallpapers(userId: string): Promise<{
+        url: string;
         id: string;
         name: string;
         createdAt: Date;
         userId: string;
-        url: string;
     }[]>;
     createCustomWallpaper(name: string, url: string, userId: string): Promise<{
+        url: string;
         id: string;
         name: string;
         createdAt: Date;
         userId: string;
-        url: string;
     }>;
     deleteCustomWallpaper(id: string): Promise<{
+        url: string;
         id: string;
         name: string;
         createdAt: Date;
         userId: string;
-        url: string;
     }>;
     getAllBookmarks(userId?: string): Promise<{
+        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
-        url: string;
         category: string;
         position: number;
         clicks: number;
     }[]>;
     createBookmark(title: string, url: string, category: string, isShared: boolean, userId: string, position?: number): Promise<{
+        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
-        url: string;
         category: string;
         position: number;
         clicks: number;
     }>;
     updateBookmark(id: string, updates: Record<string, unknown>): Promise<{
+        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
-        url: string;
         category: string;
         position: number;
         clicks: number;
     }>;
     deleteBookmark(id: string): Promise<{
+        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
-        url: string;
         category: string;
         position: number;
         clicks: number;
     }>;
     incrementBookmarkClick(id: string): Promise<{
+        url: string;
         id: string;
         createdAt: Date;
         title: string;
         isShared: boolean;
         userId: string;
-        url: string;
         category: string;
         position: number;
         clicks: number;
@@ -276,8 +276,8 @@ export declare class AppService {
         config: Record<string, unknown>;
         id: string;
         createdAt: Date;
-        userId: string;
         updatedAt: Date;
+        userId: string;
         type: string;
         x: number;
         y: number;
@@ -472,8 +472,8 @@ export declare class AppService {
         id: string;
         name: string;
         createdAt: Date;
-        description: string;
         updatedAt: Date;
+        description: string;
         icon: string;
         color: string;
         ownerId: string;
@@ -494,8 +494,8 @@ export declare class AppService {
         id: string;
         name: string;
         createdAt: Date;
-        description: string;
         updatedAt: Date;
+        description: string;
         icon: string;
         color: string;
         ownerId: string;
@@ -521,8 +521,8 @@ export declare class AppService {
         id: string;
         name: string;
         createdAt: Date;
-        description: string;
         updatedAt: Date;
+        description: string;
         icon: string;
         color: string;
         ownerId: string;
@@ -546,8 +546,8 @@ export declare class AppService {
         id: string;
         name: string;
         createdAt: Date;
-        description: string;
         updatedAt: Date;
+        description: string;
         icon: string;
         color: string;
         ownerId: string;
@@ -568,9 +568,9 @@ export declare class AppService {
         id: string;
         status: string;
         createdAt: Date;
-        description: string;
         title: string;
         updatedAt: Date;
+        description: string;
         priority: string;
         dueDate: Date | null;
         assigneeId: string | null;
@@ -593,9 +593,9 @@ export declare class AppService {
         id: string;
         status: string;
         createdAt: Date;
-        description: string;
         title: string;
         updatedAt: Date;
+        description: string;
         priority: string;
         dueDate: Date | null;
         assigneeId: string | null;
@@ -622,9 +622,9 @@ export declare class AppService {
         id: string;
         status: string;
         createdAt: Date;
-        description: string;
         title: string;
         updatedAt: Date;
+        description: string;
         priority: string;
         dueDate: Date | null;
         assigneeId: string | null;
@@ -642,9 +642,9 @@ export declare class AppService {
         id: string;
         status: string;
         createdAt: Date;
-        description: string;
         title: string;
         updatedAt: Date;
+        description: string;
         priority: string;
         dueDate: Date | null;
         assigneeId: string | null;

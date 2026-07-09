@@ -227,6 +227,31 @@ export class AppController {
     );
   }
 
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadGenericFile(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new Error('No file uploaded');
+    }
+
+    let url = '';
+    try {
+      if (
+        process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET
+      ) {
+        url = await uploadToCloudinary(file.buffer, file.originalname);
+      } else {
+        url = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+      }
+    } catch {
+      url = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+    }
+
+    return { url };
+  }
+
   @Delete('wallpapers/:id')
   deleteCustomWallpaper(@Param('id') id: string) {
     return this.appService.deleteCustomWallpaper(id);
