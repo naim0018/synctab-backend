@@ -1,0 +1,13 @@
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: synctab-backend
+    ports:
+      - "3000:3000"
+
+    env_file:
+      - .env
+    restart: always
