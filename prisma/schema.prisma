@@ -19,6 +19,7 @@ model User {
   accentColor    String   @default("#8b5cf6")
   blurIntensity  String   @default("20px")
   clockFormat24h Boolean  @default(false)
+  sidebarSettings String  @default("{}")
   createdAt DateTime @default(now())
   
   // Relations

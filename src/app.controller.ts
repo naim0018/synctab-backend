@@ -54,6 +54,7 @@ export class AppController {
       accentColor?: string;
       blurIntensity?: string;
       clockFormat24h?: boolean;
+      sidebarSettings?: string;
     },
   ) {
     return this.appService.updateUserSettings(id, body);

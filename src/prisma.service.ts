@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import * as path from 'path';
 
+// Updated schema triggers client reload
 @Injectable()
 export class PrismaService
   extends PrismaClient

@@ -62,6 +62,7 @@ export class AppService {
       accentColor?: string;
       blurIntensity?: string;
       clockFormat24h?: boolean;
+      sidebarSettings?: string;
     },
   ) {
     return this.prisma.user.update({
