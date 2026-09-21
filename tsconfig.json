@@ -19,6 +19,10 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@neon/config/v1": ["./node_modules/@neon/config/dist/v1.d.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "neon.ts"]
 }
