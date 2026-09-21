@@ -5,7 +5,6 @@ import { Prisma } from '@prisma/client';
 import { hashPassword, verifyPassword } from './auth.helper';
 import { OAuth2Client } from 'google-auth-library';
 import { randomUUID } from 'crypto';
-
 @Injectable()
 export class AppService {
   constructor(
